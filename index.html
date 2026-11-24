@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ru" data-theme="forest">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="robots" content="noindex"><title>Меню</title><link rel="stylesheet" href="menu.css"></head>
+<body><div id="app"></div>
+<script src="menu.js"></script>
+<script>
+(async()=>{
+  const app=document.getElementById("app");
+  const fail=t=>app.append($("main",{class:"wrap"},$("p",{style:"text-align:center;padding:40px 0"},t)));
+  const v=new URLSearchParams(location.search).get("v")||"";
+  if(!/^[a-z0-9-]{1,40}$/i.test(v))return fail("Меню не найдено. Проверьте ссылку.");
+  try{
+    const r=await fetch("venues/"+v+".json",{cache:"no-cache"});
+    if(!r.ok)throw 0;
+    const C=await r.json();
+    document.documentElement.dataset.theme=THEMES.some(t=>t[0]===C.theme)?C.theme:"forest";
+    document.title=C.name||"Меню";
+    app.append(buildMenu(C));
+  }catch(e){fail("Не удалось загрузить меню. Попробуйте ещё раз.")}
+})();
+</script></body></html>

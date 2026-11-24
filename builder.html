@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Конструктор меню</title>
+<link rel="stylesheet" href="menu.css">
+<style>
+body{background:#EEF0F3;color:#1B1B1B}
+.layout{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:24px;max-width:1000px;margin:0 auto;padding:20px 16px}
+@media(max-width:760px){.layout{grid-template-columns:1fr}}
+.panel{background:#FFFFFF;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;align-self:start}
+.panel h2{margin:0;font-size:18px}.panel h3{margin:8px 0 0;font-size:13px;color:#5A5F66;text-transform:uppercase;letter-spacing:.06em}
+label{font-size:12px;color:#5A5F66;display:flex;flex-direction:column;gap:3px}
+input,select{font:inherit;padding:9px 10px;border-radius:10px;border:1px solid #C9CDD3;background:#FFFFFF;color:#1B1B1B}
+button.b{font:inherit;font-weight:700;padding:12px;border-radius:12px;border:0;background:#1B1B1B;color:#FFFFFF;cursor:pointer}
+button.b:disabled{opacity:.4;cursor:not-allowed}.b.alt{background:#E3E6EA;color:#1B1B1B}
+.note{margin:0;font-size:13px;color:#5A5F66;line-height:1.4}.ok{color:#14733B}.bad{color:#B3261E}
+.pv{border-radius:28px;overflow:hidden;background:var(--bg);max-width:440px;width:100%;margin:0 auto;border:8px solid #1B1B1B}
+</style></head>
+<body>
+<div class="layout">
+<div class="panel" id="form"><h2>Конструктор меню</h2>
+<label>Файл существующего меню (чтобы изменить)<input type="file" id="load" accept=".json,application/json"></label></div>
+<div><div class="pv" id="pv"></div></div>
+</div>
+<script src="menu.js"></script>
+<script>
+const GROUPS=[["Основное",[["name","Название заведения"],["tagline","Подзаголовок"],["logo","Знак логотипа (1-2 буквы)"],["gift","Подарок или акция"]]],
+["Кнопки",[["booking","Ссылка на запись"],["tips","Ссылка на чаевые"],["site","Сайт"],["wifiName","Wi-Fi: название сети"],["wifiPass","Wi-Fi: пароль"]]],
+["Соцсети",SOC.map(s=>["links."+s[0],s[1]])],["Отзывы",[["yandex","Яндекс Карты: ссылка на отзывы"],["gis","2ГИС: ссылка на отзывы"]]]];
+let C=JSON.parse(JSON.stringify(DEFAULT));
+const get=k=>k.split(".").reduce((o,p)=>o[p],C),set=(k,v)=>{const p=k.split("."),l=p.pop();p.reduce((o,x)=>o[x],C)[l]=v};
+const pv=document.getElementById("pv"),form=document.getElementById("form"),inputs={};
+function draw(){pv.dataset.theme=C.theme;pv.replaceChildren(buildMenu(C))}
+const gen=()=>Array.from({length:6},()=>"abcdefghjkmnpqrstuvwxyz23456789"[Math.floor(Math.random()*31)]).join("");
+const sel=$("select",{onchange:e=>{C.theme=e.target.value;draw()}},...THEMES.map(([v,l])=>$("option",{value:v},l)));sel.value=C.theme;
+form.append($("label",{},"Цветовая тема",sel));
+GROUPS.forEach(([g,fs])=>{form.append($("h3",{},g));fs.forEach(([k,l])=>{const i=$("input",{type:"text",oninput:e=>{set(k,e.target.value);draw()}});i.value=get(k)||"";inputs[k]=i;form.append($("label",{},l,i))})});
+const slug=$("input",{type:"text",value:gen(),oninput:upd}),base=$("input",{type:"text",placeholder:"https://ваш-ник.github.io/menu",oninput:upd});
+try{base.value=localStorage.getItem("base")||""}catch(e){}
+const info=$("p",{class:"note"}),dl=$("button",{class:"b",type:"button",onclick:download},"Скачать файл меню"),cp=$("button",{class:"b alt",type:"button",onclick:async()=>{info.textContent=(await copy(url()))?"Ссылка скопирована ✓":"Не удалось скопировать"}},"Скопировать ссылку для NFC");
+form.append($("h3",{},"Публикация"),$("label",{},"Код меню в ссылке (латиница, цифры, дефис)",slug),$("label",{},"Адрес вашего сайта",base),dl,cp,info);
+const valid=()=>/^[a-z0-9-]{1,40}$/i.test(slug.value);
+const url=()=>base.value.trim().replace(/\/+$/,"")+"/?v="+slug.value;
+function upd(){dl.disabled=cp.disabled=!valid();try{localStorage.setItem("base",base.value)}catch(e){}
+  info.className="note"+(valid()?"":" bad");info.textContent=valid()?"Ссылка: "+url()+" ("+url().length+" символов)":"Код: только латиница, цифры и дефис."}
+function download(){const a=$("a",{href:URL.createObjectURL(new Blob([JSON.stringify(C,null,1)],{type:"application/json"})),download:slug.value+".json"});document.body.append(a);a.click();a.remove();info.className="note ok";info.textContent="Файл "+slug.value+".json скачан. Загрузите его в папку venues на сайте."}
+document.getElementById("load").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());C={...JSON.parse(JSON.stringify(DEFAULT)),...d,links:{...DEFAULT.links,...(d.links||{})}};
+  Object.entries(inputs).forEach(([k,i])=>i.value=get(k)||"");sel.value=C.theme;slug.value=f.name.replace(/\.json$/i,"");draw();upd()}catch(x){info.className="note bad";info.textContent="Не удалось прочитать файл."}});
+draw();upd();
+</script></body></html>
