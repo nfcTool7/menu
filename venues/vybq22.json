@@ -1,0 +1,24 @@
+{
+ "theme": "forest",
+ "name": "Пионер",
+ "tagline": "Спасибо, что выбрали нас",
+ "logo": "П",
+ "gift": "",
+ "booking": "",
+ "tips": "",
+ "wifiName": "",
+ "wifiPass": "",
+ "site": "https://pionerkafe.ru/",
+ "links": {
+  "telegram": "",
+  "whatsapp": "",
+  "max": "",
+  "vk": "https://vk.ru/pionercafe",
+  "instagram": "",
+  "ok": "",
+  "tiktok": "",
+  "like": ""
+ },
+ "yandex": "https://yandex.ru/maps/org/pioner/143244285883?si=bf5xfg3ey1cumezq8ukwwqkcr8",
+ "gis": ""
+}
