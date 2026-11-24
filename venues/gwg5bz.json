@@ -1,0 +1,24 @@
+{
+ "theme": "forest",
+ "name": "Пионер",
+ "tagline": "Спасибо, что выбрали нас",
+ "logo": "П",
+ "gift": "каждому 100 покупателю бесплатная пица",
+ "booking": "",
+ "tips": "",
+ "wifiName": "",
+ "wifiPass": "",
+ "site": "pionerkafe.ru",
+ "links": {
+  "telegram": "",
+  "whatsapp": "",
+  "max": "",
+  "vk": "https://vk.ru/pionercafe",
+  "instagram": "",
+  "ok": "",
+  "tiktok": "",
+  "like": ""
+ },
+ "yandex": "https://yandex.ru/maps/org/pioner/143244285883/reviews/?ll=38.473712%2C55.596061&z=16",
+ "gis": "https://2gis.ru/moscow/firm/70000001049583115/38.47357%2C55.59617/tab/reviews?m=38.473525%2C55.596057%2F19.75"
+}
