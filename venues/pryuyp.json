@@ -1,24 +1,24 @@
 {
  "theme": "forest",
- "name": "ООО",
+ "name": "Пионер",
  "tagline": "Спасибо, что выбрали нас",
- "logo": "",
+ "logo": "П",
  "gift": "",
  "booking": "",
  "tips": "",
  "wifiName": "",
  "wifiPass": "",
- "site": "",
+ "site": "https://pionerkafe.ru/",
  "links": {
   "telegram": "",
   "whatsapp": "",
   "max": "",
-  "vk": "",
+  "vk": "https://vk.ru/pionercafe",
   "instagram": "",
   "ok": "",
   "tiktok": "",
   "like": ""
  },
- "yandex": "",
- "gis": ""
+ "yandex": "https://yandex.ru/maps/org/pioner/143244285883/reviews/?ll=38.473712%2C55.596061&z=16",
+ "gis": "https://2gis.ru/moscow/firm/70000001049583115/38.47357%2C55.59617/tab/reviews?m=38.47334%2C55.596116%2F20.4"
 }
