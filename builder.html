@@ -18,7 +18,7 @@ button.b:disabled{opacity:.4;cursor:not-allowed}.b.alt{background:#E3E6EA;color:
 <body>
 <div class="layout">
 <div class="panel" id="form"><h2>Конструктор меню</h2>
-<label>Файл существующего меню (чтобы изменить)<input type="file" id="load" accept=".json,application/json"></label></div>
+</div>
 <div><div class="pv" id="pv"></div></div>
 </div>
 <script src="menu.js"></script>
@@ -34,16 +34,49 @@ const gen=()=>Array.from({length:6},()=>"abcdefghjkmnpqrstuvwxyz23456789"[Math.f
 const sel=$("select",{onchange:e=>{C.theme=e.target.value;draw()}},...THEMES.map(([v,l])=>$("option",{value:v},l)));sel.value=C.theme;
 form.append($("label",{},"Цветовая тема",sel));
 GROUPS.forEach(([g,fs])=>{form.append($("h3",{},g));fs.forEach(([k,l])=>{const i=$("input",{type:"text",oninput:e=>{set(k,e.target.value);draw()}});i.value=get(k)||"";inputs[k]=i;form.append($("label",{},l,i))})});
-const slug=$("input",{type:"text",value:gen(),oninput:upd}),base=$("input",{type:"text",placeholder:"https://ваш-ник.github.io/menu",oninput:upd});
-try{base.value=localStorage.getItem("base")||""}catch(e){}
-const info=$("p",{class:"note"}),dl=$("button",{class:"b",type:"button",onclick:download},"Скачать файл меню"),cp=$("button",{class:"b alt",type:"button",onclick:async()=>{info.textContent=(await copy(url()))?"Ссылка скопирована ✓":"Не удалось скопировать"}},"Скопировать ссылку для NFC");
-form.append($("h3",{},"Публикация"),$("label",{},"Код меню в ссылке (латиница, цифры, дефис)",slug),$("label",{},"Адрес вашего сайта",base),dl,cp,info);
-const valid=()=>/^[a-z0-9-]{1,40}$/i.test(slug.value);
-const url=()=>base.value.trim().replace(/\/+$/,"")+"/?v="+slug.value;
-function upd(){dl.disabled=cp.disabled=!valid();try{localStorage.setItem("base",base.value)}catch(e){}
-  info.className="note"+(valid()?"":" bad");info.textContent=valid()?"Ссылка: "+url()+" ("+url().length+" символов)":"Код: только латиница, цифры и дефис."}
-function download(){const a=$("a",{href:URL.createObjectURL(new Blob([JSON.stringify(C,null,1)],{type:"application/json"})),download:slug.value+".json"});document.body.append(a);a.click();a.remove();info.className="note ok";info.textContent="Файл "+slug.value+".json скачан. Загрузите его в папку venues на сайте."}
-document.getElementById("load").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());C={...JSON.parse(JSON.stringify(DEFAULT)),...d,links:{...DEFAULT.links,...(d.links||{})}};
-  Object.entries(inputs).forEach(([k,i])=>i.value=get(k)||"");sel.value=C.theme;slug.value=f.name.replace(/\.json$/i,"");draw();upd()}catch(x){info.className="note bad";info.textContent="Не удалось прочитать файл."}});
+const host=location.hostname,OWN=host.endsWith(".github.io")?host.split(".")[0]:"",REPO=location.pathname.split("/")[1]||"";
+const base=location.origin+location.pathname.replace(/\/[^\/]*$/,"");
+const slug=$("input",{type:"text",value:gen(),oninput:upd}),tok=$("input",{type:"password",placeholder:"github_pat_..."});
+try{tok.value=localStorage.getItem("gh")||""}catch(e){}
+const info=$("p",{class:"note"}),valid=()=>/^[a-z0-9-]{1,40}$/i.test(slug.value),url=()=>base+"/?v="+slug.value;
+const pub=$("button",{class:"b",type:"button",onclick:publish},"Опубликовать меню");
+const cp=$("button",{class:"b alt",type:"button",onclick:async()=>{info.className="note";info.textContent=(await copy(url()))?"Ссылка скопирована ✓":"Не удалось скопировать"}},"Скопировать ссылку для NFC");
+const list=$("select",{onchange:loadVenue},$("option",{value:""},"— новое заведение —"));
+form.children[0].after($("label",{},"Изменить существующее меню",list));
+form.append($("h3",{},"Публикация"),$("label",{},"Код меню в ссылке (латиница, цифры, дефис)",slug),pub,cp,info,
+ $("label",{},"Токен доступа GitHub (вставьте один раз, запомнится в этом браузере)",tok));
+function upd(){pub.disabled=cp.disabled=!valid();info.className="note"+(valid()?"":" bad");info.textContent=valid()?"Ссылка: "+url():"Код: только латиница, цифры и дефис."}
+async function publish(){
+  const t=tok.value.trim();
+  if(!t){info.className="note bad";info.textContent="Вставьте токен доступа внизу формы.";return}
+  try{localStorage.setItem("gh",t)}catch(e){}
+  const api="https://api.github.com/repos/"+OWN+"/"+REPO+"/contents/venues/"+slug.value+".json";
+  const H={Authorization:"Bearer "+t,Accept:"application/vnd.github+json"};
+  info.className="note";info.textContent="Публикую…";pub.disabled=true;
+  try{
+    let sha;const g=await fetch(api,{headers:H});
+    if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error("Нет доступа ("+g.status+"). Проверьте токен.");
+    const bytes=new TextEncoder().encode(JSON.stringify(C,null,1));
+    const body={message:"Меню "+slug.value,content:btoa(String.fromCharCode(...bytes))};if(sha)body.sha=sha;
+    const p=await fetch(api,{method:"PUT",headers:{...H,"Content-Type":"application/json"},body:JSON.stringify(body)});
+    if(!p.ok)throw new Error("Не удалось сохранить ("+p.status+"). Проверьте токен и его права.");
+    info.className="note ok";info.textContent="Готово ✓ Меню заработает по ссылке через 1-2 минуты: "+url();
+  }catch(e){info.className="note bad";info.textContent=e.message||"Нет связи с GitHub."}
+  pub.disabled=!valid();
+}
+async function loadVenue(){
+  const s=list.value;if(!s)return;
+  try{const r=await fetch("venues/"+s+".json",{cache:"no-store"});if(!r.ok)throw 0;const d=await r.json();
+    C={...JSON.parse(JSON.stringify(DEFAULT)),...d,links:{...DEFAULT.links,...(d.links||{})}};
+    Object.entries(inputs).forEach(([k,i])=>i.value=get(k)||"");sel.value=C.theme;slug.value=s;draw();upd();
+  }catch(e){info.className="note bad";info.textContent="Не удалось загрузить это меню."}
+}
+(async()=>{try{
+  const r=await fetch("https://api.github.com/repos/"+OWN+"/"+REPO+"/contents/venues");if(!r.ok)return;
+  const files=(await r.json()).filter(f=>f.name.endsWith(".json"));
+  for(const f of files){const code=f.name.slice(0,-5);let n=code;
+    try{const d=await (await fetch("venues/"+f.name,{cache:"no-store"})).json();n=(d.name||code)+" ("+code+")"}catch(e){}
+    list.append($("option",{value:code},n))}
+}catch(e){}})();
 draw();upd();
 </script></body></html>
