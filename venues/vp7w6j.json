@@ -1,0 +1,24 @@
+{
+ "theme": "forest",
+ "name": "Белая скупка",
+ "tagline": "Спасибо, что выбрали нас",
+ "logo": "Б",
+ "gift": "Напиши нам и получи предварительную оценку за 15 минут",
+ "booking": "",
+ "tips": "",
+ "wifiName": "",
+ "wifiPass": "",
+ "site": "https://belayaskupka.ru/",
+ "links": {
+  "telegram": "https://t.me/belayaskupka",
+  "whatsapp": "",
+  "max": "",
+  "vk": "",
+  "instagram": "",
+  "ok": "",
+  "tiktok": "",
+  "like": ""
+ },
+ "yandex": "https://yandex.ru/maps/org/skupka/131225408531?si=bf5xfg3ey1cumezq8ukwwqkcr8",
+ "gis": ""
+}
